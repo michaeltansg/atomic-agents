@@ -1,5 +1,5 @@
 from typing import Union
-import openai
+from langfuse.openai import OpenAI # Use the OpenAI class from the Langfuse library
 from pydantic import Field
 from atomic_agents.agents.base_agent import BaseAgent, BaseAgentConfig
 from atomic_agents.lib.base.base_io_schema import BaseIOSchema
@@ -22,6 +22,8 @@ from orchestration_agent.tools.calculator import (
 import instructor
 from datetime import datetime
 
+from dotenv import load_dotenv
+load_dotenv()
 
 ########################
 # INPUT/OUTPUT SCHEMAS #
@@ -74,7 +76,7 @@ class CurrentDateProvider(SystemPromptContextProviderBase):
 ######################
 orchestrator_agent = BaseAgent(
     BaseAgentConfig(
-        client=instructor.from_openai(openai.OpenAI()),
+        client=instructor.from_openai(OpenAI()),
         model="gpt-4o-mini",
         system_prompt_generator=SystemPromptGenerator(
             background=[
@@ -123,7 +125,7 @@ if __name__ == "__main__":
     load_dotenv()
 
     # Set up the OpenAI client
-    client = instructor.from_openai(openai.OpenAI(api_key=os.getenv("OPENAI_API_KEY")))
+    client = instructor.from_openai(OpenAI())
 
     # Initialize the tools
     searxng_tool = SearxNGSearchTool(SearxNGSearchToolConfig(base_url="http://localhost:8080", max_results=5))
