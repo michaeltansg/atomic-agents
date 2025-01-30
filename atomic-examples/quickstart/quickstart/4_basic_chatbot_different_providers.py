@@ -9,6 +9,14 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+from langfuse import Langfuse
+
+langfuse = Langfuse(
+  secret_key = os.getenv("LANGFUSE_SECRET_KEY"),
+  public_key = os.getenv("LANGFUSE_PUBLIC_KEY"),
+  host = os.getenv("LANGFUSE_HOST")
+)
+
 # Initialize a Rich Console for pretty console outputs
 console = Console()
 
@@ -24,10 +32,10 @@ memory.add_message("assistant", initial_message)
 def setup_client(provider):
     console.log(f"provider: {provider}")
     if provider == "1" or provider == "openai":
-        from openai import OpenAI
+        from langfuse.openai import OpenAI # Use the OpenAI class from the Langfuse library
 
         api_key = os.getenv("OPENAI_API_KEY")
-        client = instructor.from_openai(OpenAI(api_key=api_key))
+        client = instructor.from_openai(OpenAI())
         model = "gpt-4o-mini"
     elif provider == "2" or provider == "anthropic":
         from anthropic import Anthropic

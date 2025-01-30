@@ -1,6 +1,6 @@
 import os
 import instructor
-import openai
+from langfuse.openai import OpenAI # Use the OpenAI class from the Langfuse library
 from rich.console import Console
 from rich.panel import Panel
 from rich.text import Text
@@ -11,15 +11,16 @@ from atomic_agents.lib.components.agent_memory import AgentMemory
 from atomic_agents.agents.base_agent import BaseAgent, BaseAgentConfig, BaseAgentInputSchema
 from atomic_agents.lib.base.base_io_schema import BaseIOSchema
 
-# API Key setup
-API_KEY = ""
-if not API_KEY:
-    API_KEY = os.getenv("OPENAI_API_KEY")
+from dotenv import load_dotenv
+load_dotenv()
 
-if not API_KEY:
-    raise ValueError(
-        "API key is not set. Please set the API key as a static variable or in the environment variable OPENAI_API_KEY."
-    )
+from langfuse import Langfuse
+
+langfuse = Langfuse(
+  secret_key = os.getenv("LANGFUSE_SECRET_KEY"),
+  public_key = os.getenv("LANGFUSE_PUBLIC_KEY"),
+  host = os.getenv("LANGFUSE_HOST")
+)
 
 # Initialize a Rich Console for pretty console outputs
 console = Console()
@@ -50,7 +51,7 @@ initial_message = CustomOutputSchema(
 memory.add_message("assistant", initial_message)
 
 # OpenAI client setup using the Instructor library
-client = instructor.from_openai(openai.OpenAI(api_key=API_KEY))
+client = instructor.from_openai(OpenAI())
 
 # Custom system prompt
 system_prompt_generator = SystemPromptGenerator(
@@ -69,7 +70,7 @@ system_prompt_generator = SystemPromptGenerator(
         "Conclude each response with 3 relevant suggested questions for the user.",
     ],
 )
-console.print(Panel(system_prompt_generator.generate_prompt(), width=console.width, style="bold cyan"), style="bold cyan")
+console.print(Panel(system_prompt_generator.generate_prompt(), width=console.width, style="bold blue"), style="bold blue")
 
 # Agent setup with specified configuration and custom output schema
 agent = BaseAgent(
@@ -83,13 +84,13 @@ agent = BaseAgent(
 )
 
 # Display the initial message from the assistant
-console.print(Text("Agent:", style="bold green"), end=" ")
-console.print(Text(initial_message.chat_message, style="bold green"))
+console.print(Text("Agent:", style="bold red"), end=" ")
+console.print(Text(initial_message.chat_message, style="bold red"))
 
 # Display initial suggested questions
-console.print("\n[bold cyan]Suggested questions you could ask:[/bold cyan]")
+console.print("\n[bold blue]Suggested questions you could ask:[/bold blue]")
 for i, question in enumerate(initial_message.suggested_user_questions, 1):
-    console.print(f"[cyan]{i}. {question}[/cyan]")
+    console.print(f"[blue]{i}. {question}[/blue]")
 console.print()  # Add an empty line for better readability
 
 # Start an infinite loop to handle user inputs and agent responses
@@ -105,12 +106,12 @@ while True:
     response = agent.run(BaseAgentInputSchema(chat_message=user_input))
 
     # Display the agent's response
-    agent_message = Text(response.chat_message, style="bold green")
-    console.print(Text("Agent:", style="bold green"), end=" ")
+    agent_message = Text(response.chat_message, style="bold red")
+    console.print(Text("Agent:", style="bold red"), end=" ")
     console.print(agent_message)
 
     # Display follow-up questions
-    console.print("\n[bold cyan]Suggested questions you could ask:[/bold cyan]")
+    console.print("\n[bold blue]Suggested questions you could ask:[/bold blue]")
     for i, question in enumerate(response.suggested_user_questions, 1):
-        console.print(f"[cyan]{i}. {question}[/cyan]")
+        console.print(f"[blue]{i}. {question}[/blue]")
     console.print()  # Add an empty line for better readability

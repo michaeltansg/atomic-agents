@@ -1,6 +1,6 @@
 import os
 import instructor
-import openai
+from langfuse.openai import AsyncOpenAI # Use the AsyncOpenAI class from the Langfuse library
 from rich.console import Console
 from rich.panel import Panel
 from rich.text import Text
@@ -12,15 +12,16 @@ from atomic_agents.lib.components.agent_memory import AgentMemory
 from atomic_agents.agents.base_agent import BaseAgent, BaseAgentConfig, BaseAgentInputSchema
 from atomic_agents.lib.base.base_io_schema import BaseIOSchema
 
-# API Key setup
-API_KEY = ""
-if not API_KEY:
-    API_KEY = os.getenv("OPENAI_API_KEY")
+from dotenv import load_dotenv
+load_dotenv()
 
-if not API_KEY:
-    raise ValueError(
-        "API key is not set. Please set the API key as a static variable or in the environment variable OPENAI_API_KEY."
-    )
+from langfuse import Langfuse
+
+langfuse = Langfuse(
+  secret_key = os.getenv("LANGFUSE_SECRET_KEY"),
+  public_key = os.getenv("LANGFUSE_PUBLIC_KEY"),
+  host = os.getenv("LANGFUSE_HOST")
+)
 
 # Initialize a Rich Console for pretty console outputs
 console = Console()
@@ -51,7 +52,7 @@ initial_message = CustomOutputSchema(
 memory.add_message("assistant", initial_message)
 
 # OpenAI client setup using the Instructor library for async operations
-client = instructor.from_openai(openai.AsyncOpenAI(api_key=API_KEY))
+client = instructor.from_openai(AsyncOpenAI())
 
 # Custom system prompt
 system_prompt_generator = SystemPromptGenerator(
@@ -70,7 +71,7 @@ system_prompt_generator = SystemPromptGenerator(
         "Conclude each response with 3 relevant suggested questions for the user.",
     ],
 )
-console.print(Panel(system_prompt_generator.generate_prompt(), width=console.width, style="bold cyan"), style="bold cyan")
+console.print(Panel(system_prompt_generator.generate_prompt(), width=console.width, style="bold blue"), style="bold blue")
 
 # Agent setup with specified configuration and custom output schema
 agent = BaseAgent(
@@ -84,13 +85,13 @@ agent = BaseAgent(
 )
 
 # Display the initial message from the assistant
-console.print(Text("Agent:", style="bold green"), end=" ")
-console.print(Text(initial_message.chat_message, style="green"))
+console.print(Text("Agent:", style="bold red"), end=" ")
+console.print(Text(initial_message.chat_message, style="red"))
 
 # Display initial suggested questions
-console.print("\n[bold cyan]Suggested questions you could ask:[/bold cyan]")
+console.print("\n[bold blue]Suggested questions you could ask:[/bold blue]")
 for i, question in enumerate(initial_message.suggested_user_questions, 1):
-    console.print(f"[cyan]{i}. {question}[/cyan]")
+    console.print(f"[blue]{i}. {question}[/blue]")
 console.print()  # Add an empty line for better readability
 
 
@@ -124,14 +125,14 @@ async def main():
                         current_questions = partial_response.suggested_user_questions
 
                     # Combine all elements for display
-                    display_text = Text.assemble(("Agent: ", "bold green"), (current_response, "green"))
+                    display_text = Text.assemble(("Agent: ", "bold red"), (current_response, "red"))
 
                     # Add questions if we have them
                     if current_questions:
                         display_text.append("\n\n")
-                        display_text.append("Suggested questions you could ask:\n", style="bold cyan")
+                        display_text.append("Suggested questions you could ask:\n", style="bold blue")
                         for i, question in enumerate(current_questions, 1):
-                            display_text.append(f"{i}. {question}\n", style="cyan")
+                            display_text.append(f"{i}. {question}\n", style="blue")
 
                     live.update(display_text)
 

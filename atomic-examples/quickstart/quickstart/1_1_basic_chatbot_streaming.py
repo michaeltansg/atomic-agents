@@ -1,6 +1,6 @@
 import os
 import instructor
-import openai
+from langfuse.openai import AsyncOpenAI # Use the AsyncOpenAI class from the Langfuse library
 from rich.console import Console
 from rich.panel import Panel
 from rich.text import Text
@@ -8,15 +8,16 @@ from rich.live import Live
 from atomic_agents.lib.components.agent_memory import AgentMemory
 from atomic_agents.agents.base_agent import BaseAgent, BaseAgentConfig, BaseAgentInputSchema, BaseAgentOutputSchema
 
-# API Key setup
-API_KEY = ""
-if not API_KEY:
-    API_KEY = os.getenv("OPENAI_API_KEY")
+from dotenv import load_dotenv
+load_dotenv()
 
-if not API_KEY:
-    raise ValueError(
-        "API key is not set. Please set the API key as a static variable or in the environment variable OPENAI_API_KEY."
-    )
+from langfuse import Langfuse
+
+langfuse = Langfuse(
+  secret_key = os.getenv("LANGFUSE_SECRET_KEY"),
+  public_key = os.getenv("LANGFUSE_PUBLIC_KEY"),
+  host = os.getenv("LANGFUSE_HOST")
+)
 
 # Initialize a Rich Console for pretty console outputs
 console = Console()
@@ -29,7 +30,7 @@ initial_message = BaseAgentOutputSchema(chat_message="Hello! How can I assist yo
 memory.add_message("assistant", initial_message)
 
 # OpenAI client setup using the Instructor library for async operations
-client = instructor.from_openai(openai.AsyncOpenAI(api_key=API_KEY))
+client = instructor.from_openai(AsyncOpenAI())
 
 # Agent setup with specified configuration
 agent = BaseAgent(
@@ -43,11 +44,11 @@ agent = BaseAgent(
 # Generate the default system prompt for the agent
 default_system_prompt = agent.system_prompt_generator.generate_prompt()
 # Display the system prompt in a styled panel
-console.print(Panel(default_system_prompt, width=console.width, style="bold cyan"), style="bold cyan")
+console.print(Panel(default_system_prompt, width=console.width, style="bold blue"), style="bold blue")
 
 # Display the initial message from the assistant
-console.print(Text("Agent:", style="bold green"), end=" ")
-console.print(Text(initial_message.chat_message, style="green"))
+console.print(Text("Agent:", style="bold red"), end=" ")
+console.print(Text(initial_message.chat_message, style="red"))
 
 
 async def main():
@@ -73,7 +74,7 @@ async def main():
                     if partial_response.chat_message != current_response:
                         current_response = partial_response.chat_message
                         # Combine the label and response in the live display
-                        display_text = Text.assemble(("Agent: ", "bold green"), (current_response, "green"))
+                        display_text = Text.assemble(("Agent: ", "bold red"), (current_response, "red"))
                         live.update(display_text)
 
 
