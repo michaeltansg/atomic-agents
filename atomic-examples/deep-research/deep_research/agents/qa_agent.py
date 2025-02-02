@@ -1,5 +1,5 @@
 import instructor
-import openai
+from langfuse.openai import OpenAI # Use the OpenAI class from the Langfuse library
 from pydantic import Field
 from atomic_agents.agents.base_agent import BaseIOSchema, BaseAgent, BaseAgentConfig
 from atomic_agents.lib.components.system_prompt_generator import SystemPromptGenerator
@@ -29,7 +29,7 @@ class QuestionAnsweringAgentOutputSchema(BaseIOSchema):
 
 question_answering_agent = BaseAgent(
     BaseAgentConfig(
-        client=instructor.from_openai(openai.OpenAI(api_key=ChatConfig.api_key)),
+        client=instructor.from_openai(OpenAI(api_key=ChatConfig.api_key)),
         model=ChatConfig.model,
         system_prompt_generator=SystemPromptGenerator(
             background=[
