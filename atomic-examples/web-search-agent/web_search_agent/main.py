@@ -16,7 +16,7 @@ from web_search_agent.tools.searxng_search import (
 from web_search_agent.agents.query_agent import QueryAgentInputSchema, query_agent
 from web_search_agent.agents.question_answering_agent import question_answering_agent, QuestionAnsweringAgentInputSchema
 
-import openai
+from langfuse.openai import OpenAI # Use the OpenAI class from the Langfuse library
 import instructor
 
 load_dotenv()
@@ -33,7 +33,7 @@ search_tool = SearxNGSearchTool(config=SearxNGSearchToolConfig(base_url=os.geten
 # Initialize the BaseAgent
 agent = BaseAgent(
     config=BaseAgentConfig(
-        client=instructor.from_openai(openai.OpenAI(api_key=os.getenv("OPENAI_API_KEY"))),
+        client=instructor.from_openai(OpenAI()),
         model="gpt-4o-mini",
         memory=memory,
     )

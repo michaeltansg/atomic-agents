@@ -1,5 +1,5 @@
 import instructor
-import openai
+from langfuse.openai import OpenAI # Use the OpenAI class from the Langfuse library
 from pydantic import Field, HttpUrl
 from typing import List
 from atomic_agents.agents.base_agent import BaseIOSchema, BaseAgent, BaseAgentConfig
@@ -27,7 +27,7 @@ class QuestionAnsweringAgentOutputSchema(BaseIOSchema):
 # Create the question answering agent
 question_answering_agent = BaseAgent(
     BaseAgentConfig(
-        client=instructor.from_openai(openai.OpenAI()),
+        client=instructor.from_openai(OpenAI()),
         model="gpt-4o-mini",
         system_prompt_generator=SystemPromptGenerator(
             background=[

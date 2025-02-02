@@ -1,5 +1,5 @@
 import instructor
-import openai
+from langfuse.openai import OpenAI # Use the OpenAI class from the Langfuse library
 from pydantic import Field
 from atomic_agents.agents.base_agent import BaseIOSchema, BaseAgent, BaseAgentConfig
 from atomic_agents.lib.components.system_prompt_generator import SystemPromptGenerator
@@ -16,7 +16,7 @@ class QueryAgentInputSchema(BaseIOSchema):
 
 query_agent = BaseAgent(
     BaseAgentConfig(
-        client=instructor.from_openai(openai.OpenAI()),
+        client=instructor.from_openai(OpenAI()),
         model="gpt-4o-mini",
         system_prompt_generator=SystemPromptGenerator(
             background=[
